@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe</title>
+    <style>
+        :root {
+            --bg: #0b1220;
+            --panel: rgba(255, 255, 255, 0.08);
+            --panel2: rgba(255, 255, 255, 0.06);
+            --text: rgba(255, 255, 255, 0.92);
+            --muted: rgba(255, 255, 255, 0.72);
+            --border: rgba(255, 255, 255, 0.16);
+            --shadow: rgba(0, 0, 0, 0.35);
+            --x: #60a5fa;
+            --o: #f59e0b;
+            --win: rgba(34, 197, 94, 0.28);
+            --danger: rgba(239, 68, 68, 0.25);
+            --focus: rgba(168, 85, 247, 0.55);
+        }
+
+        body.theme-light {
+            --bg: #f6f7fb;
+            --panel: rgba(17, 24, 39, 0.06);
+            --panel2: rgba(17, 24, 39, 0.04);
+            --text: rgba(17, 24, 39, 0.92);
+            --muted: rgba(17, 24, 39, 0.68);
+            --border: rgba(17, 24, 39, 0.14);
+            --shadow: rgba(17, 24, 39, 0.12);
+            --win: rgba(34, 197, 94, 0.22);
+            --danger: rgba(239, 68, 68, 0.16);
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+            min-height: 100vh;
+            margin: 0;
+            color: var(--text);
+            background:
+                radial-gradient(1200px 500px at 15% 0%, rgba(96, 165, 250, 0.18), transparent 60%),
+                radial-gradient(900px 500px at 90% 10%, rgba(168, 85, 247, 0.16), transparent 60%),
+                radial-gradient(1000px 600px at 35% 100%, rgba(34, 197, 94, 0.12), transparent 60%),
+                var(--bg);
+            padding: 24px;
+            display: grid;
+            place-items: center;
+        }
+
+        .app {
+            width: min(920px, 100%);
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 18px;
+        }
+
+        @media (max-width: 840px) {
+            .app { grid-template-columns: 1fr; }
+        }
+
+        .card {
+            background: linear-gradient(180deg, var(--panel), var(--panel2));
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            box-shadow: 0 18px 50px var(--shadow);
+            padding: 18px;
+            backdrop-filter: blur(10px);
+        }
+
+        header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 14px;
+        }
+
+        h1 {
+            font-size: 22px;
+            letter-spacing: 0.2px;
+            margin: 0;
+        }
+
+        .subtitle {
+            margin-top: 6px;
+            font-size: 13px;
+            color: var(--muted);
+            line-height: 1.35;
+        }
+
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            appearance: none;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text);
+            border-radius: 12px;
+            padding: 10px 12px;
+            font-size: 13px;
+            line-height: 1;
+            cursor: pointer;
+            transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
+            user-select: none;
+        }
+
+        .btn:hover { transform: translateY(-1px); background: rgba(255, 255, 255, 0.1); }
+        .btn:active { transform: translateY(0px); }
+        .btn:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.04);
+            font-size: 13px;
+            color: var(--muted);
+            white-space: nowrap;
+        }
+
+        .status-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.35);
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08);
+        }
+
+        .status-dot.x { background: var(--x); box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.22); }
+        .status-dot.o { background: var(--o); box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.22); }
+        .status-dot.win { background: rgb(34, 197, 94); box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2); }
+        .status-dot.tie { background: rgb(239, 68, 68); box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.18); }
+
+        .board-wrap {
+            display: grid;
+            gap: 12px;
+            align-items: start;
+        }
+
+        #game {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(72px, 1fr));
+            gap: 10px;
+            width: min(430px, 100%);
+        }
+
+        .cell {
+            aspect-ratio: 1 / 1;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            display: grid;
+            place-items: center;
+            font-size: clamp(36px, 7.5vw, 58px);
+            font-weight: 800;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.05);
+            transition: transform 120ms ease, background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+            user-select: none;
+        }
+
+        .cell:hover:not(.disabled) {
+            transform: translateY(-1px);
+            background: rgba(255, 255, 255, 0.10);
+            border-color: rgba(255, 255, 255, 0.28);
+        }
+
+        .cell:focus-visible {
+            outline: 3px solid var(--focus);
+            outline-offset: 2px;
+        }
+
+        .cell.disabled {
+            cursor: default;
+            opacity: 0.85;
+        }
+
+        .cell[data-value="X"] { color: var(--x); text-shadow: 0 10px 30px rgba(96, 165, 250, 0.25); }
+        .cell[data-value="O"] { color: var(--o); text-shadow: 0 10px 30px rgba(245, 158, 11, 0.22); }
+
+        .winning {
+            background: var(--win) !important;
+            border-color: rgba(34, 197, 94, 0.38) !important;
+            box-shadow: 0 14px 40px rgba(34, 197, 94, 0.18);
+        }
+
+        .tie {
+            background: var(--danger) !important;
+            border-color: rgba(239, 68, 68, 0.38) !important;
+        }
+
+        .sidebar h2 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--muted);
+        }
+
+        .help {
+            font-size: 13px;
+            color: var(--muted);
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        kbd {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 12px;
+            border: 1px solid var(--border);
+            border-bottom-width: 2px;
+            border-radius: 8px;
+            padding: 2px 7px;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text);
+        }
+    </style>
+</head>
+<body class="theme-dark">
+    <main class="app" aria-label="Tic Tac Toe">
+        <section class="card">
+            <header>
+                <div>
+                    <h1>Tic Tac Toe</h1>
+                    <div class="subtitle">Two players on one device. Click a square or use the keyboard.</div>
+                </div>
+                <div class="toolbar">
+                    <div id="statusPill" class="pill" aria-live="polite">
+                        <span id="statusDot" class="status-dot x" aria-hidden="true"></span>
+                        <span id="message">Player X’s turn</span>
+                    </div>
+                    <button id="themeToggle" class="btn" type="button" aria-pressed="false" title="Toggle theme">
+                        Toggle theme
+                    </button>
+                    <button id="restart" class="btn" type="button">
+                        Restart
+                    </button>
+                </div>
+            </header>
+
+            <div class="board-wrap">
+                <div id="game" role="grid" aria-label="Tic Tac Toe board">
+                    <button class="cell" type="button" data-index="0" aria-label="Cell 1" role="gridcell"></button>
+                    <button class="cell" type="button" data-index="1" aria-label="Cell 2" role="gridcell"></button>
+                    <button class="cell" type="button" data-index="2" aria-label="Cell 3" role="gridcell"></button>
+                    <button class="cell" type="button" data-index="3" aria-label="Cell 4" role="gridcell"></button>
+                    <button class="cell" type="button" data-index="4" aria-label="Cell 5" role="gridcell"></button>
+                    <button class="cell" type="button" data-index="5" aria-label="Cell 6" role="gridcell"></button>
+                    <button class="cell" type="button" data-index="6" aria-label="Cell 7" role="gridcell"></button>
+                    <button class="cell" type="button" data-index="7" aria-label="Cell 8" role="gridcell"></button>
+                    <button class="cell" type="button" data-index="8" aria-label="Cell 9" role="gridcell"></button>
+                </div>
+            </div>
+        </section>
+
+        <aside class="card sidebar">
+            <h2>How to play</h2>
+            <p class="help">
+                <strong>Mouse/Touch:</strong> Click any empty square.<br>
+                <strong>Keyboard (extra feature):</strong> Press <kbd>1</kbd>…<kbd>9</kbd> to place your mark.<br>
+                Cells map left-to-right, top-to-bottom (1 is top-left, 9 is bottom-right).<br>
+                <strong>Restart anytime:</strong> Use the Restart button (or press <kbd>R</kbd>).
+            </p>
+        </aside>
+    </main>
+    <script>
+        (function() {
+            let currentPlayer = 'X';
+            let board = Array(9).fill(null);
+            let gameOver = false;
+            const winningCombos = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8],
+                [0, 3, 6], [1, 4, 7], [2, 5, 8],
+                [0, 4, 8], [2, 4, 6]
+            ];
+
+            const cells = document.querySelectorAll('.cell');
+            const message = document.getElementById('message');
+            const restartButton = document.getElementById('restart');
+            const themeToggle = document.getElementById('themeToggle');
+            const statusDot = document.getElementById('statusDot');
+            const statusPill = document.getElementById('statusPill');
+
+            function checkWinner() {
+                for (const combo of winningCombos) {
+                    const [a, b, c] = combo;
+                    if (board[a] && board[a] === board[b] && board[b] === board[c]) {
+                        return combo;
+                    }
+                }
+                return null;
+            }
+
+            function setStatus(kind, text) {
+                message.textContent = text;
+                statusDot.className = 'status-dot';
+                if (kind) statusDot.classList.add(kind);
+                statusPill.setAttribute('data-status', kind || '');
+            }
+
+            function renderCell(idx) {
+                const v = board[idx];
+                cells[idx].textContent = v ? v : '';
+                cells[idx].setAttribute('data-value', v ? v : '');
+                cells[idx].setAttribute('aria-label', `Cell ${idx + 1}${v ? `, ${v}` : ', empty'}`);
+            }
+
+            function placeMark(idx) {
+                if (gameOver) return;
+                if (idx < 0 || idx > 8) return;
+                if (board[idx]) return;
+
+                board[idx] = currentPlayer;
+                renderCell(idx);
+
+                const winningCombo = checkWinner();
+                if (winningCombo) {
+                    winningCombo.forEach(i => cells[i].classList.add('winning'));
+                    setStatus('win', `Player ${currentPlayer} wins!`);
+                    gameOver = true;
+                    disableBoard();
+                    return;
+                }
+
+                if (!board.includes(null)) {
+                    cells.forEach(c => c.classList.add('tie'));
+                    setStatus('tie', "It's a tie!");
+                    gameOver = true;
+                    disableBoard();
+                    return;
+                }
+
+                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                setStatus(currentPlayer.toLowerCase(), `Player ${currentPlayer}’s turn`);
+            }
+
+            function disableBoard() {
+                cells.forEach(cell => {
+                    cell.classList.add('disabled');
+                    cell.setAttribute('disabled', 'disabled');
+                });
+            }
+
+            function enableBoard() {
+                cells.forEach(cell => {
+                    cell.classList.remove('disabled', 'winning', 'tie');
+                    cell.removeAttribute('disabled');
+                    cell.setAttribute('data-value', '');
+                    cell.textContent = '';
+                });
+            }
+
+            function resetGame() {
+                board.fill(null);
+                currentPlayer = 'X';
+                gameOver = false;
+                enableBoard();
+                cells.forEach((_, idx) => renderCell(idx));
+                setStatus('x', `Player ${currentPlayer}’s turn`);
+                cells[0].focus();
+            }
+
+            function handleCellClick(event) {
+                const idx = parseInt(event.currentTarget.getAttribute('data-index'));
+                placeMark(idx);
+            }
+
+            function handleKeyDown(event) {
+                if (event.key >= '1' && event.key <= '9') {
+                    event.preventDefault();
+                    const idx = parseInt(event.key, 10) - 1;
+                    placeMark(idx);
+                }
+                // Convenience: R to restart
+                if (event.key === 'r' || event.key === 'R') {
+                    event.preventDefault();
+                    resetGame();
+                }
+            }
+
+            function toggleTheme() {
+                const body = document.body;
+                const isLight = body.classList.contains('theme-light');
+                body.classList.toggle('theme-light', !isLight);
+                body.classList.toggle('theme-dark', isLight);
+                themeToggle.setAttribute('aria-pressed', String(!isLight));
+            }
+
+            cells.forEach((cell, idx) => {
+                cell.addEventListener('click', handleCellClick);
+                // Helps keyboard users land on the board with Tab (first cell is enough).
+                cell.tabIndex = idx === 0 ? 0 : -1;
+            });
+
+            restartButton.addEventListener('click', resetGame);
+            themeToggle.addEventListener('click', toggleTheme);
+            document.addEventListener('keydown', handleKeyDown);
+
+            // Initialize message
+            resetGame();
+        })();
+    </script>
+</body>
+</html>

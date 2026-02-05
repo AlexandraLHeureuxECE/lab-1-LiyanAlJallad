@@ -50,8 +50,7 @@ Your deployed Tic‑Tac‑Toe game must be accessible via that URL when you subm
 ## GitHub Pages URL
 
 Deployed site: 
-Example format: `https://<your-username>.github.io/<repo-name>/`
 
 ##  LLM Tool Usage
 
-This application was built using **ChatGPT (OpenAI GPT‑5.x)** as the primary LLM tool. The prompts used to generate and refine the code and documentation are recorded in `LLM_Interaction_Log.txt`.
+This application was built using **ChatGPT (OpenAI GPT‑5.x)** as the primary LLM tool. The prompts used to generate and refine the code and documentation are recorded in `LLM Interaction Log`.

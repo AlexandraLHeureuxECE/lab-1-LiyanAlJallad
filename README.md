@@ -49,7 +49,7 @@ Your deployed Tic‑Tac‑Toe game must be accessible via that URL when you subm
 
 ## GitHub Pages URL
 
-Deployed site: 
+Deployed site: `https://alexandralheureuxece.github.io/lab-1-LiyanAlJallad/`
 
 ##  LLM Tool Usage
 
